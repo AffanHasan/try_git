@@ -1,1 +1,49 @@
-A Tale of Two Octocats
+Persistence Unit: A persistence unit is a named configuration of entity classes.
+
+Persistence Context: A Persistence context is a managed sub set of entity instances defined in a persistence unit. Entities associated with a persistence context are called managed & entities detached from a persistence context are called 'Detached' entities.
+  
+
+There are 3 types of Entity Managers:
+
+1  Transaction Scoped
+2  Extended Scoped
+3  Application Scoped
+
+Each entity manager type defines the life cycle of the persistence context
+
+Transaction & Extended scoped are container managed! while application managed is not
+
+To get a container managed Entity Manager simply use '@PersistenceContext' annotation on a reference
+
+To get a container managed extended scoped entity manager use '@PersistenceContext(type = PersistenceContextType.EXTENDED)' annotation
+
+Application scoped entity managers are the only type available in java SE
+
+In an EJB session bean (stateful/stateless both) when a method starts to execute; the container automatically starts a transaction before method starts and ends the transaction before the method ends. If we do not want a transaction to start automatically then we do it by marking it with an annotation 
+'@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)'.
+
+
+JPA TRANSACTION MANAGEMENT
+
+The transaction type is defined for a persistence unit and it is configured using the persistence.xml file.
+
+There are two types of transactions supported by the JPA.
+
+1.  Resource local transactions : These are the native transactions of the JDBC drivers(which are refrenced by the persistence unit).
+
+2.  JTA transactions : These are the transactions of the JAVA EE application servers. They are the preffered transaction types for the JAVA EE environment & support 
+multiple participating resources, transaction life cycle management and distributed XA transactions. Container managed entity managers always use JTA transactions while application managed can use both.
+
+There are three concepts related to the JTA transactions:
+
+Transaction Synchronization: This the process of registering an entity manager to a transaction so that 'the persistence context' can get a notification when the JTA transaction commits & and the persistence provider uses this notification ensure that the persistence context is properly flushed to the database.
+
+Transaction Association : This is the process of binding a persistence context to a transaction. We can also call it as the 'active persistence context with in the scope of that transaction'.
+
+Transaction Propagation : This is the process of sharing a persistence context between multiple container managed entity managers with in a single transaction.
+
+			'REMEMBER AT FIRST TRANSACTION SYNCHRONIZATION OCCURS & AFTER THAT TRANSACTION ASSOCIATION OCCURS'
+									&
+			'THERE CAN BE ONLY ONE PERSISTENCE CONTEXT ASSOCIATED & PROPAGATED WITH A JTA TRANSACTION AT A TIME'
+									&
+			'ALL CONTAINER MANAGED ENTITY MANAGERS IN A TRANSACTION MUST SHARE THE SAME PERSISTENCE CONTEXT'
