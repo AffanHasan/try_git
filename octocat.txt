@@ -1,7 +1,18 @@
 Persistence Unit: A persistence unit is a named configuration of entity classes.
 
-Persistence Context: A Persistence context is a managed sub set of entity instances defined in a persistence unit. Entities associated with a persistence context are called managed & entities detached from a persistence context are called 'Detached' entities.
-  
+Persistence Context: A Persistence context is a managed sub set of entity instances defined/configured in a persistence unit. Entities associated with a persistence 
+
+context are called managed & entities detached from a persistence context are called 'Detached' entities.
+
+Entity managers operate on entities using by a persistence context
+
+When the .persist() method is called on an entity manager then the newly created entity is assigned an identifier and become managed; the entity is flushed to the 
+
+database only when the transaction is commited and not before that!
+
+When .find() method is called on an entity manager inside a transaction; then if an entity is managed by that persistence context, but it is not persisted to the 
+
+database but still it will return that entity in the transaction because it is managed by that persistence context
 
 There are 3 types of Entity Managers:
 
@@ -19,8 +30,26 @@ To get a container managed extended scoped entity manager use '@PersistenceConte
 
 Application scoped entity managers are the only type available in java SE
 
-In an EJB session bean (stateful/stateless both) when a method starts to execute; the container automatically starts a transaction before method starts and ends the transaction before the method ends. If we do not want a transaction to start automatically then we do it by marking it with an annotation 
+In an EJB session bean (stateful/stateless both) when a method starts to execute; the container automatically starts a transaction before method starts and ends the 
+
+transaction before the method ends. If we do not want a transaction to start automatically then we do it by marking it with an annotation 
 '@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)'.
+
+Entity States In JPA
+
+There are 4 four states of an Entity in JPA
+
+1. New or transient: The entity is just created and is not associated with a persistence context and is not assigned an identifier and has no representation in the 
+
+database
+
+2. Managed Or Persistent: The entity is associated with a persistence context and is assigned an identifier
+
+3. Detached: The entity is assigned an identifier but is no longer associated with a persistence context because the persistence context is removed or the entity is 
+
+dethached from that persistence context
+
+4. Removed: The entity is assigned an identifier and associated with a persistence context but is scheduled to be removed from the data base.	
 
 
 JPA TRANSACTION MANAGEMENT
@@ -32,13 +61,19 @@ There are two types of transactions supported by the JPA.
 1.  Resource local transactions : These are the native transactions of the JDBC drivers(which are refrenced by the persistence unit).
 
 2.  JTA transactions : These are the transactions of the JAVA EE application servers. They are the preffered transaction types for the JAVA EE environment & support 
-multiple participating resources, transaction life cycle management and distributed XA transactions. Container managed entity managers always use JTA transactions while application managed can use both.
+multiple participating resources, transaction life cycle management and distributed XA transactions. Container managed entity managers always use JTA transactions 
+
+while application managed can use both.
 
 There are three concepts related to the JTA transactions:
 
-Transaction Synchronization: This the process of registering an entity manager to a transaction so that 'the persistence context' can get a notification when the JTA transaction commits & and the persistence provider uses this notification ensure that the persistence context is properly flushed to the database.
+Transaction Synchronization: This the process of registering an entity manager to a transaction so that 'the persistence context' can get a notification when the JTA 
 
-Transaction Association : This is the process of binding a persistence context to a transaction. We can also call it as the 'active persistence context with in the scope of that transaction'.
+transaction commits & and the persistence provider uses this notification ensure that the persistence context is properly flushed to the database.
+
+Transaction Association : This is the process of binding a persistence context to a transaction. We can also call it as the 'active persistence context with in the 
+
+scope of that transaction'.
 
 Transaction Propagation : This is the process of sharing a persistence context between multiple container managed entity managers with in a single transaction.
 
@@ -47,3 +82,27 @@ Transaction Propagation : This is the process of sharing a persistence context b
 			'THERE CAN BE ONLY ONE PERSISTENCE CONTEXT ASSOCIATED & PROPAGATED WITH A JTA TRANSACTION AT A TIME'
 									&
 			'ALL CONTAINER MANAGED ENTITY MANAGERS IN A TRANSACTION MUST SHARE THE SAME PERSISTENCE CONTEXT'
+
+
+Transaction Scoped Entity Managers In Detail : 
+
+Transaction scoped entity managers are 'lazy' in terms of persistence context creation because they only  create a persistence context when needed & if there is no 
+
+already created ersistence context.
+
+When a method is invoked on a container managed entity manager then at first entity manager looks for a propagated persistence context first, when it do not find it 
+
+then it requests one from the persistence provider. After receiving one from the persistence provider it marks it as the propagated persistence context and then start 
+
+to execute the method.
+
+All subsequent entity managers in this transaction will then use it as their persistence context
+
+Propagation of persistence context with in a transaction supports the enterprise nature of loosely coupled applications
+
+If a component makes changes to an entity in a transaction then other components refering to the same entity with in that transaction will always recieive the same 
+
+instance although they are not sharing the same entity managers
+
+Extended Scoped Entity Managers : 
+
